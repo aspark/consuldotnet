@@ -36,15 +36,92 @@ namespace Consul
 
     public class CatalogService
     {
+        /// <summary>
+        /// Node is the name of the Consul node on which the service is registered
+        /// </summary>
         public string Node { get; set; }
+
+        /// <summary>
+        /// Address is the IP address of the Consul node on which the service is registered.
+        /// </summary>
         public string Address { get; set; }
+
+        /// <summary>
+        /// Datacenter is the data center of the Consul node on which the service is registered.
+        /// </summary>
+        public string Datacenter { get; set; }
+
+        /// <summary>
+        /// TaggedAddresses is the list of explicit LAN and WAN IP addresses for the agent
+        /// </summary>
+        public IDictionary<string, string> TaggedAddresses { get; set; }
+
+        /// <summary>
+        /// NodeMeta is a list of user-defined metadata key/value pairs for the node
+        /// </summary>
+        public IDictionary<string, string> NodeMeta { get; set; }
+
+        /// <summary>
+        /// CreateIndex is an internal index value representing when the service was created
+        /// </summary>
+        public string CreateIndex { get; set; }
+
+        /// <summary>
+        /// ModifyIndex is the last index that modified the service
+        /// </summary>
+        public string ModifyIndex { get; set; }
+
+        /// <summary>
+        /// ServiceID is a unique service instance identifier
+        /// </summary>
         public string ServiceID { get; set; }
+
+        /// <summary>
+        /// ServiceName is the name of the service
+        /// </summary>
         public string ServiceName { get; set; }
+
+        /// <summary>
+        /// ServiceAddress is the IP address of the service host — if empty, node address should be used
+        /// </summary>
         public string ServiceAddress { get; set; }
-        public string[] ServiceTags { get; set; }
+
+        /// <summary>
+        /// ServicePort is the port number of the service
+        /// </summary>
         public int ServicePort { get; set; }
+
+        /// <summary>
+        /// ServiceTags is a list of tags for the service
+        /// </summary>
+        public string[] ServiceTags { get; set; }
+
+        /// <summary>
+        /// ServiceKind is the kind of service, usually "". See the Agent registration API for more information.
+        /// </summary>
+        public string ServiceKind { get; set; }
+
+        /// <summary>
+        /// ServiceEnableTagOverride indicates whether service tags can be overridden on this service
+        /// </summary>
         public bool ServiceEnableTagOverride { get; set; }
-        public IDictionary<string,string> ServiceMeta { get; set; }
+
+        /// <summary>
+        /// ServiceMeta is a list of user-defined metadata key/value pairs for the service
+        /// </summary>
+        public IDictionary<string, string> ServiceMeta { get; set; }
+
+        /// <summary>
+        /// ServiceProxy is the proxy config as specified in Connect Proxies.
+        /// </summary>
+        public IDictionary<string, string> ServiceProxy { get; set; }
+
+        /// <summary>
+        /// ServiceConnect are the Connect settings. The value of this struct is equivalent to the Connect field for service registration.
+        /// </summary>
+        public IDictionary<string, string> ServiceConnect { get; set; }
+
+
     }
 
     public class CatalogNode
