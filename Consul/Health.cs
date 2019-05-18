@@ -121,7 +121,10 @@ namespace Consul
     /// </summary>
     public class HealthCheck
     {
+        //public Guid ID { get; set; }
+
         public string Node { get; set; }
+
         public string CheckID { get; set; }
         public string Name { get; set; }
         [JsonConverter(typeof(HealthStatusConverter))]
@@ -130,6 +133,7 @@ namespace Consul
         public string Output { get; set; }
         public string ServiceID { get; set; }
         public string ServiceName { get; set; }
+        public string[] ServiceTags { get; set; }
     }
 
     public static class HealthCheckExtension

@@ -26,16 +26,22 @@ namespace Consul
 {
     public class Node
     {
+        //public Guid ID { get; set; }
+
         // Cannot be "Node" as in the Go API because in C#, properties cannot
         // have the same name as their enclosing class.
         [JsonProperty(PropertyName = "Node")]
         public string Name { get; set; }
         public string Address { get; set; }
+        public string Datacenter { get; set; }
         public Dictionary<string, string> TaggedAddresses { get; set; }
+        public Dictionary<string, string> Meta { get; set; }
     }
 
     public class CatalogService
     {
+        //public Guid ID { get; set; }
+
         /// <summary>
         /// Node is the name of the Consul node on which the service is registered
         /// </summary>
@@ -111,15 +117,27 @@ namespace Consul
         /// </summary>
         public IDictionary<string, string> ServiceMeta { get; set; }
 
-        /// <summary>
-        /// ServiceProxy is the proxy config as specified in Connect Proxies.
-        /// </summary>
-        public IDictionary<string, string> ServiceProxy { get; set; }
+        ///// <summary>
+        ///// ServiceProxy is the proxy config as specified in Connect Proxies.
+        ///// </summary>
+        //public IDictionary<string, string> ServiceProxy { get; set; }//todo:use class
 
-        /// <summary>
-        /// ServiceConnect are the Connect settings. The value of this struct is equivalent to the Connect field for service registration.
-        /// </summary>
-        public IDictionary<string, string> ServiceConnect { get; set; }
+        ///// <summary>
+        ///// ServiceConnect are the Connect settings. The value of this struct is equivalent to the Connect field for service registration.
+        ///// </summary>
+        //public IDictionary<string, string> ServiceConnect { get; set; }//todo:use class
+
+
+    }
+
+    public class NodeService
+    {
+        public string ID { get; set; }
+        public string Service { get; set; }
+        public string[] Tags { get; set; }
+        public int Port { get; set; }
+        public string Address { get; set; }
+        public IDictionary<string, string> Meta { get; set; }
 
 
     }
@@ -142,6 +160,13 @@ namespace Consul
         public string Datacenter { get; set; }
         public AgentService Service { get; set; }
         public AgentCheck Check { get; set; }
+
+        /// <summary>
+        /// SkipNodeUpdate (bool: false) - Specifies whether to skip updating the node's information in the registration. 
+        /// This is useful in the case where only a health check or service entry on a node needs to be updated or when a register request is intended to update a service entry or health check. In both use cases, node information will not be overwritten, if the node is already registered. 
+        /// Note, if the paramater is enabled for a node that doesn't exist, it will still be created.
+        /// </summary>
+        public bool SkipNodeUpdate { get; set; }
     }
 
     public class CatalogDeregistration

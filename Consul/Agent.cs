@@ -128,20 +128,26 @@ namespace Consul
         public string Output { get; set; }
         public string ServiceID { get; set; }
         public string ServiceName { get; set; }
+        public string[] ServiceTags { get; set; }
     }
 
     /// <summary>
     /// AgentService represents a service known to the agent
     /// </summary>
-    public class AgentService
+    public class AgentService : NodeService
     {
-        public string ID { get; set; }
-        public string Service { get; set; }
-        public string[] Tags { get; set; }
-        public int Port { get; set; }
-        public string Address { get; set; }
         public bool EnableTagOverride { get; set; }
-        public IDictionary<string, string> Meta { get; set; }
+
+        public ServiceWeight Weights { get; set; }//todo:use class?
+    }
+
+    public class ServiceWeight
+    {
+        public int Passing { get; set; }
+
+        public int Warning { get; set; }
+
+        public int Critical { get; set; }
     }
 
     /// <summary>
@@ -172,33 +178,82 @@ namespace Consul
     /// </summary>
     public class AgentServiceRegistration
     {
+        /// <summary>
+        /// Specifies a unique ID for this service. This must be unique per agent. This defaults to the Name parameter if not provided.
+        /// </summary>
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string ID { get; set; }
 
+        /// <summary>
+        ///  Specifies the logical name of the service. Many service instances may share the same logical service name.
+        /// </summary>
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string Name { get; set; }
 
+        /// <summary>
+        /// Specifies a list of tags to assign to the service. These tags can be used for later filtering and are exposed via the APIs.
+        /// </summary>
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string[] Tags { get; set; }
 
+        /// <summary>
+        /// Specifies the port of the service
+        /// </summary>
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public int Port { get; set; }
 
+        /// <summary>
+        /// Specifies the address of the service. If not provided, the agent's address is used as the address for the service during DNS queries.
+        /// </summary>
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public string Address { get; set; }
 
+        /// <summary>
+        /// The kind of service. Defaults to "" which is a typical Consul service. This value may also be "connect-proxy" for services that are Connect-capable proxies representing another service.
+        /// </summary>
+        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        public string Kind { get; set; }
+
+        /// <summary>
+        /// Specifies to disable the anti-entropy feature for this service's tags. If EnableTagOverride is set to true then external agents can update this service in the catalog and modify the tags. Subsequent local sync operations by this agent will ignore the updated tags
+        /// </summary>
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public bool EnableTagOverride { get; set; }
 
+        /// <summary>
+        /// Specifies a check
+        /// </summary>
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public AgentServiceCheck Check { get; set; }
 
+        /// <summary>
+        ///  Specifies a list of checks
+        /// </summary>
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public AgentServiceCheck[] Checks { get; set; }
 
+        /// <summary>
+        ///  Specifies arbitrary KV metadata linked to the service instance.
+        /// </summary>
         [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
         public IDictionary<string, string> Meta { get; set; }
-    }
+
+        ///// <summary>
+        /////  Specifies weights for the service.
+        ///// </summary>
+        //[JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        //public IDictionary<string, string> Weights { get; set; }
+     }
+
+    //public class Connect
+    //{
+    //    /// <summary>
+    //    /// Specifies whether this service supports the Connect protocol natively. If this is true, then Connect proxies, DNS queries, etc. will be able to service discover this service.
+    //    /// </summary>
+    //    public bool Native { get; set; }
+
+
+    //}
 
     /// <summary>
     /// AgentCheckRegistration is used to register a new check
@@ -356,6 +411,42 @@ namespace Consul
         {
             return _client.Get<Dictionary<string, AgentService>>("/v1/agent/services").Execute(ct);
         }
+
+        //todo:complete
+        ///// <summary>
+        ///// Get Service Configuration
+        ///// </summary>
+        ///// <param name="serviceID"></param>
+        ///// <param name="ct"></param>
+        ///// <returns></returns>
+        //public Task<QueryResult<Dictionary<string, AgentService>>> Services(string serviceID, CancellationToken ct = default(CancellationToken))
+        //{
+        //    return _client.Get<Dictionary<string, AgentService>>(string.Format("/v1/agent/services/{0}", serviceID)).Execute(ct);
+        //}
+
+        //todo:complete
+        ///// <summary>
+        ///// Get local service health
+        ///// </summary>
+        ///// <param name="serviceID"></param>
+        ///// <param name="ct"></param>
+        ///// <returns></returns>
+        //public Task<QueryResult<Dictionary<string, AgentService>>> Health(string serviceName, CancellationToken ct = default(CancellationToken))
+        //{
+        //    return _client.Get<Dictionary<string, AgentService>>(string.Format("/v1/agent/health/service/name/{0}", serviceName)).Execute(ct);
+        //}
+
+        //todo:complete
+        ///// <summary>
+        ///// Get local service health
+        ///// </summary>
+        ///// <param name="serviceID"></param>
+        ///// <param name="ct"></param>
+        ///// <returns></returns>
+        //public Task<QueryResult<Dictionary<string, AgentService>>> Health(string serviceID, CancellationToken ct = default(CancellationToken))
+        //{
+        //    return _client.Get<Dictionary<string, AgentService>>(string.Format("/v1/agent/health/service/id/{0}", serviceID)).Execute(ct);
+        //}
 
         /// <summary>
         /// Members returns the known gossip members. The WAN flag can be used to query a server for WAN members.
