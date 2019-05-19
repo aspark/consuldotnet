@@ -81,10 +81,16 @@ namespace Consul.Test
             var services = await client.Agent.Services();
             Assert.True(services.Response.ContainsKey(svcID));
 
+            services = await client.Agent.Services(FilterOptions.CreateNotEqual(nameof(AgentService.Service), svcID));
+            Assert.False(services.Response.ContainsKey(svcID));
+
             var checks = await client.Agent.Checks();
             Assert.True(checks.Response.ContainsKey("service:" + svcID));
 
             Assert.Equal(HealthStatus.Critical, checks.Response["service:" + svcID].Status);
+
+            checks = await client.Agent.Checks(FilterOptions.CreateNotEqual(Consts.Names.ServiceName, svcID));
+            Assert.False(checks.Response.ContainsKey("service:" + svcID));
 
             await client.Agent.ServiceDeregister(svcID);
         }

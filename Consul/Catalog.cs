@@ -323,6 +323,20 @@ namespace Consul
         }
 
         /// <summary>
+        /// Service is used to query catalog entries for a given service
+        /// </summary>
+        /// <param name="service">The service ID</param>
+        /// <param name="q">Customized query options</param>
+        /// <param name="ct">Cancellation token for long poll request. If set, OperationCanceledException will be thrown if the request is cancelled before completing</param>
+        /// <returns>A list of service instances</returns>
+        public Task<QueryResult<CatalogService[]>> Service(string service, FilterOptions q, CancellationToken ct)
+        {
+            var req = _client.Get<CatalogService[]>(string.Format("/v1/catalog/service/{0}", service), q);
+
+            return req.Execute(ct);
+        }
+
+        /// <summary>
         /// Node is used to query for service information about a single node
         /// </summary>
         /// <param name="node">The node name</param>
@@ -341,6 +355,18 @@ namespace Consul
         /// <param name="ct">Cancellation token for long poll request. If set, OperationCanceledException will be thrown if the request is cancelled before completing</param>
         /// <returns>The node information including a list of services</returns>
         public Task<QueryResult<CatalogNode>> Node(string node, QueryOptions q, CancellationToken ct = default(CancellationToken))
+        {
+            return _client.Get<CatalogNode>(string.Format("/v1/catalog/node/{0}", node), q).Execute(ct);
+        }
+
+        /// <summary>
+        /// Node is used to query for service information about a single node
+        /// </summary>
+        /// <param name="node">The node name</param>
+        /// <param name="q">Customized query options</param>
+        /// <param name="ct">Cancellation token for long poll request. If set, OperationCanceledException will be thrown if the request is cancelled before completing</param>
+        /// <returns>The node information including a list of services</returns>
+        public Task<QueryResult<CatalogNode>> Node(string node, FilterOptions q, CancellationToken ct = default(CancellationToken))
         {
             return _client.Get<CatalogNode>(string.Format("/v1/catalog/node/{0}", node), q).Execute(ct);
         }

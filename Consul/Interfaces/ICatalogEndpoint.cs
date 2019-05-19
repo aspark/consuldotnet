@@ -12,6 +12,7 @@ namespace Consul
         Task<WriteResult> Deregister(CatalogDeregistration reg, WriteOptions q, CancellationToken ct = default(CancellationToken));
         Task<QueryResult<CatalogNode>> Node(string node, CancellationToken ct = default(CancellationToken));
         Task<QueryResult<CatalogNode>> Node(string node, QueryOptions q, CancellationToken ct = default(CancellationToken));
+        Task<QueryResult<CatalogNode>> Node(string node, FilterOptions q, CancellationToken ct = default(CancellationToken));
         Task<QueryResult<Node[]>> Nodes(CancellationToken ct = default(CancellationToken));
         Task<QueryResult<Node[]>> Nodes(QueryOptions q, CancellationToken ct = default(CancellationToken));
         Task<WriteResult> Register(CatalogRegistration reg, CancellationToken ct = default(CancellationToken));
@@ -19,6 +20,7 @@ namespace Consul
         Task<QueryResult<CatalogService[]>> Service(string service, CancellationToken ct = default(CancellationToken));
         Task<QueryResult<CatalogService[]>> Service(string service, string tag, CancellationToken ct = default(CancellationToken));
         Task<QueryResult<CatalogService[]>> Service(string service, string tag, QueryOptions q, CancellationToken ct = default(CancellationToken));
+        Task<QueryResult<CatalogService[]>> Service(string service, FilterOptions q, CancellationToken ct = default(CancellationToken));
         Task<QueryResult<Dictionary<string, string[]>>> Services(CancellationToken ct = default(CancellationToken));
         Task<QueryResult<Dictionary<string, string[]>>> Services(QueryOptions q, CancellationToken ct = default(CancellationToken));
     }

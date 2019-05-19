@@ -404,12 +404,31 @@ namespace Consul
         }
 
         /// <summary>
+        /// Checks returns the locally registered checks
+        /// </summary>
+        /// <param name="q">filter</param>
+        /// <returns>A map of the registered check names and check data</returns>
+        public Task<QueryResult<Dictionary<string, AgentCheck>>> Checks(FilterOptions q, CancellationToken ct = default(CancellationToken))
+        {
+            return _client.Get<Dictionary<string, AgentCheck>>("/v1/agent/checks", q).Execute(ct);
+        }
+
+        /// <summary>
         /// Services returns the locally registered services
         /// </summary>
         /// <returns>A map of the registered services and service data</returns>
         public Task<QueryResult<Dictionary<string, AgentService>>> Services(CancellationToken ct = default(CancellationToken))
         {
             return _client.Get<Dictionary<string, AgentService>>("/v1/agent/services").Execute(ct);
+        }
+
+        /// <summary>
+        /// Services returns the locally registered services
+        /// </summary>
+        /// <returns>A map of the registered services and service data</returns>
+        public Task<QueryResult<Dictionary<string, AgentService>>> Services(FilterOptions q, CancellationToken ct = default(CancellationToken))
+        {
+            return _client.Get<Dictionary<string, AgentService>>("/v1/agent/services", q).Execute(ct);
         }
 
         //todo:complete

@@ -28,6 +28,7 @@ namespace Consul
         Task<WriteResult> CheckDeregister(string checkID, CancellationToken ct = default(CancellationToken));
         Task<WriteResult> CheckRegister(AgentCheckRegistration check, CancellationToken ct = default(CancellationToken));
         Task<QueryResult<Dictionary<string, AgentCheck>>> Checks(CancellationToken ct = default(CancellationToken));
+        Task<QueryResult<Dictionary<string, AgentCheck>>> Checks(FilterOptions q, CancellationToken ct = default(CancellationToken));
         Task<WriteResult> DisableNodeMaintenance(CancellationToken ct = default(CancellationToken));
         Task<WriteResult> DisableServiceMaintenance(string serviceID, CancellationToken ct = default(CancellationToken));
         Task<WriteResult> EnableNodeMaintenance(string reason, CancellationToken ct = default(CancellationToken));
@@ -44,6 +45,7 @@ namespace Consul
         Task<WriteResult> ServiceDeregister(string serviceID, CancellationToken ct = default(CancellationToken));
         Task<WriteResult> ServiceRegister(AgentServiceRegistration service, CancellationToken ct = default(CancellationToken));
         Task<QueryResult<Dictionary<string, AgentService>>> Services(CancellationToken ct = default(CancellationToken));
+        Task<QueryResult<Dictionary<string, AgentService>>> Services(FilterOptions q, CancellationToken ct = default(CancellationToken));
         Task<WriteResult> UpdateTTL(string checkID, string output, TTLStatus status, CancellationToken ct = default(CancellationToken));
         Task WarnTTL(string checkID, string note, CancellationToken ct = default(CancellationToken));
         Task<Agent.LogStream> Monitor(LogLevel level = default(LogLevel), CancellationToken ct = default(CancellationToken));

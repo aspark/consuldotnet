@@ -311,9 +311,9 @@ namespace Consul
     /// <summary>
     /// QueryOptions are used to parameterize a query
     /// </summary>
-    public class QueryOptions
+    public class QueryOptions: WriteOptions
     {
-        public static readonly QueryOptions Default = new QueryOptions()
+        public static readonly new QueryOptions Default = new QueryOptions()
         {
             Consistency = ConsistencyMode.Default,
             Datacenter = string.Empty,
@@ -321,10 +321,10 @@ namespace Consul
             WaitIndex = 0
         };
 
-        /// <summary>
-        /// Providing a datacenter overwrites the DC provided by the Config
-        /// </summary>
-        public string Datacenter { get; set; }
+        ///// <summary>
+        ///// Providing a datacenter overwrites the DC provided by the Config
+        ///// </summary>
+        //public string Datacenter { get; set; }
 
         /// <summary>
         /// The consistency level required for the operation
@@ -341,10 +341,10 @@ namespace Consul
         /// </summary>
         public TimeSpan? WaitTime { get; set; }
 
-        /// <summary>
-        /// Token is used to provide a per-request ACL token which overrides the agent's default token.
-        /// </summary>
-        public string Token { get; set; }
+        ///// <summary>
+        ///// Token is used to provide a per-request ACL token which overrides the agent's default token.
+        ///// </summary>
+        //public string Token { get; set; }
 
         /// <summary>
         /// Near is used to provide a node name that will sort the results
@@ -355,10 +355,14 @@ namespace Consul
         public string Near { get; set; }
     }
 
+    public class RequestOptions
+    {
+
+    }
     /// <summary>
     /// WriteOptions are used to parameterize a write
     /// </summary>
-    public class WriteOptions
+    public class WriteOptions: RequestOptions
     {
         public static readonly WriteOptions Default = new WriteOptions()
         {
@@ -376,6 +380,315 @@ namespace Consul
         /// </summary>
         public string Token { get; set; }
     }
+
+    public abstract class FilterOptions : QueryOptions
+    {
+        public static FilterOptions Empty { get; } = new FilterEmptyOptions();
+
+
+        public static FilterOptions CreateEqual(string selector, object value)
+        {
+            return new FilterEqualOptions(selector, value);
+        }
+
+        public static FilterOptions CreateNotEqual(string selector, object value)
+        {
+            return new FilterNotEqualOptions(selector, value);
+        }
+
+        public static FilterOptions CreateIsEmpty(string selector)
+        {
+            return new FilterIsEmptyOptions(selector);
+        }
+
+        public static FilterOptions CreateIsNotEmpty(string selector)
+        {
+            return new FilterIsNotEmptyOptions(selector);
+        }
+
+        public static FilterOptions CreateIn(object value, string selector)
+        {
+            return new FilterInOptions(value, selector);
+        }
+
+        public static FilterOptions CreateNotIn(object value, string selector)
+        {
+            return new FilterNotInOptions(value, selector);
+        }
+
+        public static FilterOptions CreateContains(string selector, object value)
+        {
+            return new FilterContainsOptions(selector, value);
+        }
+
+        public static FilterOptions CreateNotContains(string selector, object value)
+        {
+            return new FilterNotContainsOptions(selector, value);
+        }
+
+        public FilterOptions And(FilterOptions b)
+        {
+            return new FilterAndOptions(this, b);
+        }
+
+        public FilterOptions Or(FilterOptions b)
+        {
+            return new FilterOrOptions(this, b);
+        }
+
+        public FilterOptions Not()
+        {
+            return new FilterNotOptions(this);
+        }
+
+        public static FilterOptions operator |(FilterOptions a, FilterOptions b)
+        {
+            return a.Or(b);
+        }
+
+        public static FilterOptions operator &(FilterOptions a, FilterOptions b)
+        {
+            return a.And(b);
+        }
+
+        public static FilterOptions operator !(FilterOptions a)
+        {
+            return a.Not();
+        }
+
+        public abstract string GetValue();
+
+    }
+
+    internal class FilterEmptyOptions : FilterOptions
+    {
+        public override string GetValue()
+        {
+            return "";
+        }
+    }
+
+
+    internal abstract class FilterMatchingOptions : FilterOptions
+    {
+        protected string FormatValue(object value)
+        {
+            var val = (value ?? "").ToString();
+            if (string.IsNullOrEmpty(val))
+                val = "\"\"";
+
+            return val;
+        }
+    }
+
+    internal class FilterEqualOptions : FilterMatchingOptions
+    {
+        private string _selector;
+        private object _value;
+
+        public FilterEqualOptions(string selector, object value)
+        {
+            _selector = selector;
+            _value = value;
+        }
+
+        public override string GetValue()
+        {
+            return $"({_selector} == {FormatValue(_value)})";
+        }
+    }
+
+    internal class FilterNotEqualOptions : FilterMatchingOptions
+    {
+        private string _selector;
+        private object _value;
+
+        public FilterNotEqualOptions(string selector, object value)
+        {
+            _selector = selector;
+            _value = value;
+        }
+
+        public override string GetValue()
+        {
+            return $"({_selector} != {FormatValue(_value)})";
+        }
+    }
+
+    internal class FilterIsEmptyOptions : FilterMatchingOptions
+    {
+        private string _selector;
+
+        public FilterIsEmptyOptions(string selector)
+        {
+            _selector = selector;
+        }
+
+        public override string GetValue()
+        {
+            return $"({_selector} is empty)";
+        }
+    }
+
+    internal class FilterIsNotEmptyOptions : FilterMatchingOptions
+    {
+        private string _selector;
+
+        public FilterIsNotEmptyOptions(string selector)
+        {
+            _selector = selector;
+        }
+
+        public override string GetValue()
+        {
+            return $"({_selector} is not empty)";
+        }
+    }
+
+    internal class FilterInOptions : FilterMatchingOptions
+    {
+        private string _selector;
+        private object _value;
+
+        public FilterInOptions(object value, string selector)
+        {
+            _selector = selector;
+            _value = value;
+        }
+
+        public override string GetValue()
+        {
+            return $"({FormatValue(_value)} in {_selector})";
+        }
+    }
+
+    internal class FilterNotInOptions : FilterMatchingOptions
+    {
+        private string _selector;
+        private object _value;
+
+        public FilterNotInOptions(object value, string selector)
+        {
+            _selector = selector;
+            _value = value;
+        }
+
+        public override string GetValue()
+        {
+            return $"({FormatValue(_value)} not in {_selector})";
+        }
+    }
+
+    internal class FilterContainsOptions : FilterMatchingOptions
+    {
+        private string _selector;
+        private object _value;
+
+        public FilterContainsOptions(string selector, object value)
+        {
+            _selector = selector;
+            _value = value;
+        }
+
+        public override string GetValue()
+        {
+            return $"({_selector} contains {FormatValue(_value)})";
+        }
+    }
+
+    internal class FilterNotContainsOptions : FilterMatchingOptions
+    {
+        private string _selector;
+        private object _value;
+
+        public FilterNotContainsOptions(string selector, object value)
+        {
+            _selector = selector;
+            _value = value;
+        }
+
+        public override string GetValue()
+        {
+            return $"({_selector} not contains {FormatValue(_value)})";
+        }
+    }
+
+
+    internal abstract class FilterLogicOptions : FilterOptions
+    {
+
+    }
+
+    internal class FilterAndOptions: FilterLogicOptions
+    {
+        public FilterAndOptions(FilterOptions a, FilterOptions b)
+        {
+            A = a;
+            B = b;
+        }
+
+        public FilterOptions A { get; set; }
+
+        public FilterOptions B { get; set; }
+
+        public override string GetValue()
+        {
+            var valueA = A?.GetValue() ?? "";
+            var valueB = B?.GetValue() ?? "";
+            if (string.IsNullOrWhiteSpace(valueA))
+                return valueB;
+            else if (string.IsNullOrWhiteSpace(valueB))
+                return valueA;
+
+            return $"({valueA} and {valueB})";
+        }
+    }
+
+    internal class FilterOrOptions : FilterLogicOptions
+    {
+        public FilterOrOptions(FilterOptions a, FilterOptions b)
+        {
+            A = a;
+            B = b;
+        }
+
+        public FilterOptions A { get; set; }
+
+        public FilterOptions B { get; set; }
+
+        public override string GetValue()
+        {
+            var valueA = A?.GetValue() ?? "";
+            var valueB = B?.GetValue() ?? "";
+            if (string.IsNullOrWhiteSpace(valueA))
+                return valueB;
+            else if (string.IsNullOrWhiteSpace(valueB))
+                return valueA;
+
+            return $"({valueA} or {valueB})";
+        }
+    }
+
+    internal class FilterNotOptions : FilterLogicOptions
+    {
+        public FilterNotOptions(FilterOptions a)
+        {
+            A = a;
+        }
+
+        public FilterOptions A { get; set; }
+
+        public override string GetValue()
+        {
+            var valueA = A?.GetValue() ?? "";
+            if (string.IsNullOrWhiteSpace(valueA))
+                return string.Empty;
+            
+            return $"(not {valueA})";
+        }
+    }
+
+
     public abstract class ConsulResult
     {
         /// <summary>
@@ -859,7 +1172,7 @@ namespace Consul
         }
     }
 
-    public abstract class ConsulRequest
+    internal abstract class ConsulRequest
     {
         internal ConsulClient Client { get; set; }
         internal HttpMethod Method { get; set; }
@@ -887,6 +1200,7 @@ namespace Consul
         }
 
         protected abstract void ApplyOptions(ConsulClientConfiguration clientConfig);
+
         protected abstract void ApplyHeaders(HttpRequestMessage message, ConsulClientConfiguration clientConfig);
 
         protected Uri BuildConsulUri(string url, Dictionary<string, string> p)
@@ -897,20 +1211,24 @@ namespace Consul
             ApplyOptions(Client.Config);
 
             var queryParams = new List<string>(Params.Count / 2);
-            foreach (var queryParam in Params)
+            if (p != null)
             {
-                if (!string.IsNullOrEmpty(queryParam.Value))
+                foreach (var queryParam in p)//Params
                 {
-                    queryParams.Add(string.Format("{0}={1}", Uri.EscapeDataString(queryParam.Key),
-                        Uri.EscapeDataString(queryParam.Value)));
-                }
-                else
-                {
-                    queryParams.Add(string.Format("{0}", Uri.EscapeDataString(queryParam.Key)));
+                    if (!string.IsNullOrEmpty(queryParam.Value))
+                    {
+                        queryParams.Add(string.Format("{0}={1}", Uri.EscapeDataString(queryParam.Key),
+                            Uri.EscapeDataString(queryParam.Value)));
+                    }
+                    else
+                    {
+                        queryParams.Add(string.Format("{0}", Uri.EscapeDataString(queryParam.Key)));
+                    }
                 }
             }
 
             builder.Query = string.Join("&", queryParams);
+
             return builder.Uri;
         }
 
@@ -931,7 +1249,7 @@ namespace Consul
         }
     }
 
-    public class GetRequest<TOut> : ConsulRequest
+    internal class GetRequest<TOut> : ConsulRequest
     {
         public QueryOptions Options { get; set; }
 
@@ -1013,6 +1331,15 @@ namespace Consul
 
         protected override void ApplyOptions(ConsulClientConfiguration clientConfig)
         {
+            if (Options is FilterOptions)
+            {
+                var filter = (Options as FilterOptions).GetValue();
+                if (!string.IsNullOrWhiteSpace(filter))
+                {
+                    Params["filter"] = filter;
+                }
+            }
+
             if (Options == QueryOptions.Default)
             {
                 return;
@@ -1109,7 +1436,7 @@ namespace Consul
         }
     }
 
-    public class DeleteReturnRequest<TOut> : ConsulRequest
+    internal class DeleteReturnRequest<TOut> : ConsulRequest
     {
         public WriteOptions Options { get; set; }
 
@@ -1183,7 +1510,7 @@ namespace Consul
         }
     }
 
-    public class DeleteRequest : ConsulRequest
+    internal class DeleteRequest : ConsulRequest
     {
         public WriteOptions Options { get; set; }
 
@@ -1252,7 +1579,7 @@ namespace Consul
         }
     }
 
-    public class DeleteAcceptingRequest<TIn> : ConsulRequest
+    internal class DeleteAcceptingRequest<TIn> : ConsulRequest
     {
         public WriteOptions Options { get; set; }
         private TIn _body;
@@ -1339,7 +1666,7 @@ namespace Consul
         }
     }
 
-    public class PutReturningRequest<TOut> : ConsulRequest
+    internal class PutReturningRequest<TOut> : ConsulRequest
     {
         public WriteOptions Options { get; set; }
 
@@ -1413,7 +1740,7 @@ namespace Consul
         }
     }
 
-    public class PutNothingRequest : ConsulRequest
+    internal class PutNothingRequest : ConsulRequest
     {
         public WriteOptions Options { get; set; }
 
@@ -1482,7 +1809,7 @@ namespace Consul
         }
     }
 
-    public class PutRequest<TIn> : ConsulRequest
+    internal class PutRequest<TIn> : ConsulRequest
     {
         public WriteOptions Options { get; set; }
         private TIn _body;
@@ -1570,7 +1897,7 @@ namespace Consul
         }
     }
 
-    public class PutRequest<TIn, TOut> : ConsulRequest
+    internal class PutRequest<TIn, TOut> : ConsulRequest
     {
         public WriteOptions Options { get; set; }
         private TIn _body;
@@ -1667,7 +1994,7 @@ namespace Consul
         }
     }
 
-    public class PostRequest<TIn> : ConsulRequest
+    internal class PostRequest<TIn> : ConsulRequest
     {
         public WriteOptions Options { get; set; }
         private TIn _body;
@@ -1755,7 +2082,7 @@ namespace Consul
         }
     }
 
-    public class PostRequest<TIn, TOut> : ConsulRequest
+    internal class PostRequest<TIn, TOut> : ConsulRequest
     {
         public WriteOptions Options { get; set; }
         private TIn _body;

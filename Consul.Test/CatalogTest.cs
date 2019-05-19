@@ -17,6 +17,7 @@
 // -----------------------------------------------------------------------
 
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -78,6 +79,58 @@ namespace Consul.Test
         }
 
         [Fact]
+        public async Task Catalog_Service_WithFilter()
+        {
+            var client = new ConsulClient();
+            var registration1 = CreateRegistration();
+            await client.Catalog.Register(registration1);
+
+            var registration2 = CreateRegistration();
+            registration2.Service.Service = registration1.Service.Service;
+            await client.Catalog.Register(registration2);
+
+            var servicesList = await client.Catalog.Service(registration1.Service.Service);
+            var sevicesCount = servicesList.Response.Length;
+
+            Assert.NotEqual((ulong)0, servicesList.LastIndex);
+            Assert.NotEqual(0, servicesList.Response.Length);
+            Assert.NotNull(servicesList.Response.FirstOrDefault(s => s.ServiceID == registration1.Service.ID));
+            Assert.NotNull(servicesList.Response.FirstOrDefault(s => s.ServiceID == registration2.Service.ID));
+
+            var queryResult = FilterOptions.CreateEqual(Consts.Names.ServiceID, registration1.Service.ID);
+            servicesList = await client.Catalog.Service(registration1.Service.Service, queryResult);
+
+            Assert.NotNull(servicesList.Response.FirstOrDefault(s=>s.ServiceID == registration1.Service.ID));
+
+            queryResult = FilterOptions.CreateEqual(Consts.Names.ServiceID, registration1.Service.ID).And(FilterOptions.CreateEqual(Consts.Names.Node, registration1.Check.Node));//.And(FilterOptions.CreateEqual(Consts.Names.Address, registration1.Service.Address));
+            servicesList = await client.Catalog.Service(registration1.Service.Service, queryResult);
+            Assert.NotNull(servicesList.Response.FirstOrDefault(s => s.ServiceID == registration1.Service.ID));
+
+            queryResult = FilterOptions.CreateNotEqual(Consts.Names.ServiceID, registration1.Service.ID);
+            servicesList = await client.Catalog.Service(registration1.Service.Service, queryResult);
+            Assert.Null(servicesList.Response.FirstOrDefault(s => s.ServiceID == registration1.Service.ID));
+
+
+            var dereg = new CatalogDeregistration()
+            {
+                Datacenter = "dc1",
+                Node = "foobar",
+                Address = "192.168.10.10",
+                CheckID = "service:" + registration1.Service.ID
+            };
+            await client.Catalog.Deregister(dereg);
+
+            dereg = new CatalogDeregistration()
+            {
+                Datacenter = "dc1",
+                Node = "foobar",
+                Address = "192.168.10.10",
+                CheckID = "service:" + registration2.Service.ID
+            };
+            await client.Catalog.Deregister(dereg);
+        }
+
+        [Fact]
         public async Task Catalog_Node()
         {
             var client = new ConsulClient();
@@ -91,10 +144,8 @@ namespace Consul.Test
             Assert.True(node.Response.Node.TaggedAddresses.ContainsKey("wan"));
         }
 
-        [Fact]
-        public async Task Catalog_RegistrationDeregistration()
+        private CatalogRegistration CreateRegistration()
         {
-            var client = new ConsulClient();
             var svcID = KVTest.GenerateTestKeyName();
             var service = new AgentService()
             {
@@ -123,20 +174,29 @@ namespace Consul.Test
                 Check = check
             };
 
+            return registration;
+        }
+
+        [Fact]
+        public async Task Catalog_RegistrationDeregistration()
+        {
+            var client = new ConsulClient();
+            var registration = CreateRegistration();
+
             await client.Catalog.Register(registration);
 
             var node = await client.Catalog.Node("foobar");
-            Assert.True(node.Response.Services.ContainsKey(svcID));
+            Assert.True(node.Response.Services.ContainsKey(registration.Service.ID));
 
             var health = await client.Health.Node("foobar");
-            Assert.Equal("service:" + svcID, health.Response[0].CheckID);
+            Assert.Equal("service:" + registration.Service.ID, health.Response[0].CheckID);
 
             var dereg = new CatalogDeregistration()
             {
                 Datacenter = "dc1",
                 Node = "foobar",
                 Address = "192.168.10.10",
-                CheckID = "service:" + svcID
+                CheckID = "service:" + registration.Service.ID
             };
 
             await client.Catalog.Deregister(dereg);
