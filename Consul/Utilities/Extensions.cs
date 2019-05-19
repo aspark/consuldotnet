@@ -52,7 +52,7 @@ namespace Consul
 
             if (ts.TotalSeconds < 1)
             {
-                return ts.TotalMilliseconds.ToString("#ms");
+                return ts.TotalMilliseconds.ToString("0ms");
             }
             else
             {
