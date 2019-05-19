@@ -25,13 +25,17 @@ namespace Consul
     {
         Task<QueryResult<HealthCheck[]>> Checks(string service, CancellationToken ct = default(CancellationToken));
         Task<QueryResult<HealthCheck[]>> Checks(string service, QueryOptions q, CancellationToken ct = default(CancellationToken));
+        Task<QueryResult<HealthCheck[]>> Checks(string service, FilterOptions q, CancellationToken ct = default(CancellationToken));
         Task<QueryResult<HealthCheck[]>> Node(string node, CancellationToken ct = default(CancellationToken));
         Task<QueryResult<HealthCheck[]>> Node(string node, QueryOptions q, CancellationToken ct = default(CancellationToken));
+        Task<QueryResult<HealthCheck[]>> Node(string node, FilterOptions q, CancellationToken ct = default(CancellationToken));
         Task<QueryResult<ServiceEntry[]>> Service(string service, CancellationToken ct = default(CancellationToken));
         Task<QueryResult<ServiceEntry[]>> Service(string service, string tag, CancellationToken ct = default(CancellationToken));
         Task<QueryResult<ServiceEntry[]>> Service(string service, string tag, bool passingOnly, CancellationToken ct = default(CancellationToken));
         Task<QueryResult<ServiceEntry[]>> Service(string service, string tag, bool passingOnly, QueryOptions q, CancellationToken ct = default(CancellationToken));
+        Task<QueryResult<ServiceEntry[]>> Service(string service, string tag, bool passingOnly, FilterOptions q, CancellationToken ct = default(CancellationToken));
         Task<QueryResult<HealthCheck[]>> State(HealthStatus status, CancellationToken ct = default(CancellationToken));
         Task<QueryResult<HealthCheck[]>> State(HealthStatus status, QueryOptions q, CancellationToken ct = default(CancellationToken));
+        Task<QueryResult<HealthCheck[]>> State(HealthStatus status, FilterOptions q, CancellationToken ct = default(CancellationToken));
     }
 }

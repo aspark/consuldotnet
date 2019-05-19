@@ -55,6 +55,27 @@ public static async Task<string> HelloConsul()
             return Encoding.UTF8.GetString(getPair.Response.Value, 0,
                 getPair.Response.Value.Length);
         }
+
+        var services = await client.Agent.Services();
+
+        //use filter
+        services = await client.Agent.Services(FilterOptions.CreateNotEqual(nameof(AgentService.Service), svcID));
+
+    
+        var checks = await client.Agent.Checks();
+        
+        //use filter
+        checks = await client.Agent.Checks(FilterOptions.CreateNotEqual(Consts.Names.ServiceName, svcID));
+
+        //use filter with logical oprt
+        //var queryResult = FilterOptions.CreateEqual(Consts.Names.ServiceID, registration1.Service.ID).And(FilterOptions.CreateEqual(Consts.Names.Node, registration1.Check.Node)); 
+
+        // var options = FilterOptions.CreateNotContains("ID", 0);
+        // options = options.And(FilterOptions.CreateEqual("ID", 1));
+        // options = options.Or(FilterOptions.CreateIsEmpty("ID"));
+        // options = options.And(FilterOptions.CreateContains("ID", 2).Not());
+
+
         return "";
     }
 }

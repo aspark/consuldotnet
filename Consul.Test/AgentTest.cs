@@ -86,6 +86,7 @@ namespace Consul.Test
 
             var checks = await client.Agent.Checks();
             Assert.True(checks.Response.ContainsKey("service:" + svcID));
+            Assert.True(checks.Response["service:" + svcID].ServiceTags != null && checks.Response["service:" + svcID].ServiceTags.Length > 0);
 
             Assert.Equal(HealthStatus.Critical, checks.Response["service:" + svcID].Status);
 
